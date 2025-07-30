@@ -1,13 +1,13 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netdb.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
 #include <arpa/inet.h>
+
+#include <stdio.h>
 #include <cstring>
 #include <cstdlib>
 
+#include <string>
 #include <iostream>
 
 #include "errors.hpp"
@@ -49,6 +49,13 @@ void print_ip(struct addrinfo *hints) {
     std::cout <<  address << '\n';
 }
 
+void input_message(std::string &message) {
+    std::cout << "Your message: ";
+    std::getline(std::cin, message);
+    message.push_back('\n');
+}                   
+
+
 void choose_addrinfo_struct(struct addrinfo *res, struct addrinfo **hints) {
     while (res != nullptr) {
         struct sockaddr_in *ipv4 = (sockaddr_in *)(res->ai_addr);
@@ -66,16 +73,31 @@ int main(void) {
     struct addrinfo *hints = nullptr;
 
     int status = create_socket_struct(&res, AF_UNSPEC, SOCK_STREAM, AI_NUMERICSERV);
-    print_error(status, "creating user socket", getfunc_code_check);
+    print_error(status, "Creating user socket structure", getfunc_code);
 
     choose_addrinfo_struct(res, &hints);
     if (hints == nullptr)
         exit(EXIT_FAILURE);
     
-    int sock = socket(hints->ai_family, hints->ai_socktype, hints->ai_protocol);
-    print_error(sock, "socket", socket_code_check);
+    int srv_sock = socket(hints->ai_family, hints->ai_socktype, hints->ai_protocol);
+    print_error(srv_sock, "Creating user socket fd", socket_code);
+    
+    std::cout << "IP to conect: ";
     print_ip(hints);
     
+    status = connect(srv_sock, hints->ai_addr, hints->ai_addrlen);
+    print_error(status, "Connecting to server", socket_code);
+
+    while (true) {
+        std::string message;
+        input_message(message);
+
+        std::cout << "Sending data to ";
+        print_ip(hints);
+
+        status = send(srv_sock, message.c_str(),message.length(), 0);
+        print_error(status, "Sending sata to server", socket_code);
+    }
 
     freeaddrinfo(res);
     return 0;
