@@ -5,6 +5,7 @@
 *.out
 *.exe
 *.dll
+build/
 
 # Debug
 *.dSYM/
