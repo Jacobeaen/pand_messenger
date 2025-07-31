@@ -1,9 +1,9 @@
 #pragma once
 
 typedef enum {
-    netfunc_code,
-    getfunc_code,
-    socket_code,
+    NetFuncCode,
+    GetFuncCode,
+    SocketCode,
 } err_type;
 
-void print_error(int code, const char *message, err_type type);
+void PrintError(int code, const char* message, err_type type);

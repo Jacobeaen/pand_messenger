@@ -16,7 +16,7 @@
 #define SRV_IP "91.103.253.65"
 
 // Creating client's socket (Future: change to general for server socket to)
-int create_socket_struct(struct addrinfo** res, int family, int socktype, int flags) {
+int CreateSocketStruct(struct addrinfo** res, int family, int socktype, int flags) {
     struct addrinfo hints = {0};
     hints.ai_family = family;
     hints.ai_socktype = socktype;
@@ -25,21 +25,21 @@ int create_socket_struct(struct addrinfo** res, int family, int socktype, int fl
     return getaddrinfo(SRV_DOMAIN, SRV_PORT, &hints, res);
 }
 
-bool check_ip(struct sockaddr_in* ai_addr) {
+bool CheckIp(struct sockaddr_in* ai_addr) {
     char ipv4_addres[INET_ADDRSTRLEN];
     inet_ntop(AF_INET, &(ai_addr->sin_addr), ipv4_addres, INET_ADDRSTRLEN);
 
     return strcmp(ipv4_addres, SRV_IP) == 0;
 }
 
-bool check_port(struct sockaddr_in* ai_addr) {
+bool CheckPort(struct sockaddr_in* ai_addr) {
     in_port_t port = ntohs(ai_addr->sin_port);
 
     return (int)port == atoi(SRV_PORT);
 }
 
 // Debug function
-void print_ip(struct addrinfo* hints) {
+void PrintIp(struct addrinfo* hints) {
     struct sockaddr_in* ipv4 = (struct sockaddr_in*)(hints->ai_addr);
 
     char address[INET_ADDRSTRLEN];
@@ -48,16 +48,16 @@ void print_ip(struct addrinfo* hints) {
     std::cout << address << '\n';
 }
 
-void input_message(std::string& message) {
+void InputMessage(std::string& message) {
     std::cout << "Your message: ";
     std::getline(std::cin, message);
     message.push_back('\n');
 }
 
-void choose_addrinfo_struct(struct addrinfo* res, struct addrinfo** hints) {
+void ChooseAddrinfoStruct(struct addrinfo* res, struct addrinfo** hints) {
     while (res != nullptr) {
         struct sockaddr_in* ipv4 = (sockaddr_in*)(res->ai_addr);
-        if (check_ip(ipv4) && check_port(ipv4)) {
+        if (CheckIp(ipv4) && CheckPort(ipv4)) {
             *hints = res;
             break;
         }
@@ -70,31 +70,31 @@ int main(void) {
     struct addrinfo* res;
     struct addrinfo* hints = nullptr;
 
-    int status = create_socket_struct(&res, AF_UNSPEC, SOCK_STREAM, AI_NUMERICSERV);
-    print_error(status, "Creating user socket structure", getfunc_code);
+    int status = CreateSocketStruct(&res, AF_UNSPEC, SOCK_STREAM, AI_NUMERICSERV);
+    PrintError(status, "Creating user socket structure", GetFuncCode);
 
-    choose_addrinfo_struct(res, &hints);
+    ChooseAddrinfoStruct(res, &hints);
     if (hints == nullptr)
         exit(EXIT_FAILURE);
 
     int srv_sock = socket(hints->ai_family, hints->ai_socktype, hints->ai_protocol);
-    print_error(srv_sock, "Creating user socket fd", socket_code);
+    PrintError(srv_sock, "Creating user socket fd", SocketCode);
 
     std::cout << "IP to conect: ";
-    print_ip(hints);
+    PrintIp(hints);
 
     status = connect(srv_sock, hints->ai_addr, hints->ai_addrlen);
-    print_error(status, "Connecting to server", socket_code);
+    PrintError(status, "Connecting to server", SocketCode);
 
     while (true) {
         std::string message;
-        input_message(message);
+        InputMessage(message);
 
         std::cout << "Sending data to ";
-        print_ip(hints);
+        PrintIp(hints);
 
         status = send(srv_sock, message.c_str(), message.length(), 0);
-        print_error(status, "Sending sata to server", socket_code);
+        PrintError(status, "Sending sata to server", SocketCode);
     }
 
     freeaddrinfo(res);
